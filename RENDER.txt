@@ -1,0 +1,70 @@
+================================================================================
+BETVIP PRO — GÓI GỌN + HƯỚNG DẪN RENDER
+================================================================================
+Chỉ còn 5 file deploy:
+  betvip_server.py   Backend Flask + API + Auto/WebSocket
+  dashboard.html     Giao diện web
+  logo_betvip.jpg    Logo
+  requirements.txt   Thư viện Python
+  Procfile           Lệnh start cho Render
+  RENDER.txt         File hướng dẫn này (không bắt buộc trên server)
+
+--------------------------------------------------------------------------------
+1. CHUẨN BỊ
+--------------------------------------------------------------------------------
+- Tài khoản GitHub + Render
+- Đẩy folder này lên repo GitHub (root repo = đúng các file trên)
+
+--------------------------------------------------------------------------------
+2. TẠO WEB SERVICE TRÊN RENDER
+--------------------------------------------------------------------------------
+1) New + → Web Service → nối repo GitHub
+2) Runtime: Python 3
+3) Build Command:
+     pip install -r requirements.txt
+4) Start Command:
+     gunicorn betvip_server:app --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 120
+   (hoặc để mặc định theo Procfile)
+
+--------------------------------------------------------------------------------
+3. DISK + BIẾN MÔI TRƯỜNG (KHUYẾN NGHỊ)
+--------------------------------------------------------------------------------
+Persistent Disk:
+  Name: data
+  Mount path: /data
+  Size: 1 GB trở lên
+
+Environment Variables:
+  BETVIP_WEB_SESSION_DB = /data/betvip_web_sessions.sqlite3
+  (tuỳ chọn) BETVIP_CREDENTIAL_KEY = <fernet-key-base64>
+      Nếu không set, server tự tạo key cạnh file DB.
+
+Không bắt buộc (đã có mặc định trong code):
+  BETVIP_MD5_HISTORY_API_URL
+  BETVIP_TX_HISTORY_API_URL
+  BETVIP_MD5_WS_URL / BETVIP_TX_WS_URL
+  BETVIP_MD5_WS_PATH=txmd5/
+  BETVIP_TX_WS_PATH=tx/
+
+--------------------------------------------------------------------------------
+4. SAU KHI DEPLOY
+--------------------------------------------------------------------------------
+- Mở URL Render → trang đăng nhập dashboard
+- Đăng nhập bằng tài khoản game
+- Kiểm tra số dư / nạp / rút / auto trước khi dùng tiền thật
+- Workers = 1 (quan trọng vì WebSocket + state trong RAM)
+
+--------------------------------------------------------------------------------
+5. CHẠY LOCAL (TEST)
+--------------------------------------------------------------------------------
+  pip install -r requirements.txt
+  python betvip_server.py
+  Mở http://127.0.0.1:10000
+
+--------------------------------------------------------------------------------
+LƯU Ý
+--------------------------------------------------------------------------------
+- Không commit file SQLite / key riêng lên GitHub
+- Instance free Render có thể ngủ → disk /data giữ session khi thức lại
+- Live login / nạp rút / socket cần test trên service thật trước khi bật Auto
+================================================================================
